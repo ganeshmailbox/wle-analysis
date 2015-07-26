@@ -1,20 +1,18 @@
 ---
-title: "Weight Lifting Exercises Dataset - Analysis and Report"
+title: "Weight Lifting Exercises Data set - Analysis and Report"
 author: "Ganesh Sethuraman"
-date: "July 20, 2015"
-output: html_document
-
+date: "July 26, 2015"
+output: 
+    html_document:
+        toc: true
 ---
 # Abstract
 
-
-
-
-This human activity recognition is applied to the Weight Lifting Exercises dataset is to investigate "how (well)" an activity was performed by the wearer. The users are classfied as A, B, C, D, E. A means someone who is doing the weight lifting properly, other classes indicate a specific mistake the user is doing while doing weight lifting.  
+This human activity recognition is applied to the Weight Lifting Exercises data set is to investigate "how (well)" an activity was performed by the wearer. The users are classified as A, B, C, D, E. A means someone who is doing the weight lifting properly, other classes indicate a specific mistake the user is doing while doing weight lifting.  
 
 # Load the Data (with some Cleansing)
 
-While borwsing the dataset (using str function) it is evident that, there are many numeric fields that are presented as string. When we looked deeper there were specific string which needs to considered as **`NA`**. 
+While browsing the data set (using str function) it is evident that, there are many numeric fields that are presented as string. When we looked deeper there were specific string which needs to considered as **`NA`**. 
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
 library("caret")
@@ -35,21 +33,26 @@ summary(pmlTrain)
 ```
 
 # Preprocess the data set 
+
+There are 3 steps in the process
+
+* Remove the Near Zero variance columns (removes 29 columns)
+* Remove the columns which has 95% of values as NA (removes 77 additional columns)
+* Remove the columns that doesn't make sense in the weight lifting domain. In this case, since we do want to be training the data based on the (Removes additional 5, in total 111 columns is of interest):
+    + user name (as training set shouldn't tuned to the user name to avoid issues in the User)
+    + Serial number and dates of the observation are irrelevant to this exercise. 
+
 ```{r}
-# Remove Near Zero Values 
+# Remove Near Zero Variance columns 
 dim(pmlTrain)
 nzvPml = nearZeroVar(pmlTrain[sapply(pmlTrain, is.numeric)])
 pmlTrain.filtered = pmlTrain[, -nzvPml]
 pmlTest.filtered = pmlTest[, -nzvPml]
-dim(pmlTrain.filtered)
-dim(pmlTest.filtered)
 
 # remove all NA column 
 naCols = colSums(is.na(pmlTrain.filtered))<nrow(pmlTrain.filtered)*0.95
 pmlTrain.filtered.noNA <- pmlTrain.filtered[,naCols]
 pmlTest.filtered.noNA <- pmlTest.filtered[,naCols]
-dim(pmlTrain.filtered.noNA)
-dim(pmlTest.filtered.noNA)
 
 # Remove varibles that does'nt make sense in the Weight Lifting Exercises Dataset
 dropCol = c("user_name","X", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp")
@@ -61,6 +64,9 @@ dim(pmlTest.filtered.2)
 ```
 
 #  Splitting the data set 
+
+The training data is further split into training set and validation data, so that out-of-sample accuracy can be calculated. This validation data set can be used for model comparison as well.
+
 ```{r}
 inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.2, list=FALSE)
 
@@ -69,7 +75,10 @@ validationPmlTrain = pmlTrain.filtered.2[-inTrain,]
 
 ```
 
-# Train the data set using Boosting technique 
+# Model Creation - Boosting technique 
+
+Boosting is well suited for multiple weak predictors. The stochastic gradient boosting is used in this case with repeated cross-validation set. The cross-validation technique is used here, so that it average the estimated error in training set, and it does not over fit on the training data set. This also means in-sample accuracy is a good measure of out-of-sample accuracy.
+
 ```{r, cache=TRUE}
 library(doParallel)
 registerDoParallel(cores=3)
@@ -85,15 +94,13 @@ registerDoSEQ()
 ```
 
 
-# Models Performance (with Training & Validation set)
-
-Please 
+The accuracy of Gradient boosting based model is mentioned below.
 
 **In-Sample Accuracy:** `r modFitboost$results$Accuracy[1]` 
 
-# Variable importance predict results & Out of Sample Error
+# Variable importance & Out of Sample Error (in Validation set)
 
-Make sure the variables that are important are shown as important. Please find the confusion matrix table below. This shows that predicted value and actual values on the validation set is more or less the same.
+Make sure the variables that are important are intuitively important. Please find the confusion matrix table below. This shows that predicted value and actual values on the validation set is more or less the same (high accuracy).
 
 ```{r, cache=TRUE}
 gbmImp <- varImp(modFitboost, scale = TRUE)
@@ -110,6 +117,9 @@ mat$table
 **Out-of-Sample Accuracy:** `r mat$overall[1]`
 
 # Actual Testing with Test data 
+
+Now that we are confident of the out-of-sample accuracy is high. We are good to test it with the actual test data.
+
 ```{r, message=FALSE, warning=FALSE}
 
 #Testing the prediction with REAL Test set
