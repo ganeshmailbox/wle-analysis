@@ -84,7 +84,7 @@ img {
 
 <div id="abstract" class="section level1">
 <h1>Abstract</h1>
-<p>This human activity recognition is applied to the Weight Lifting Exercises data set is to investigate “how (well)” an activity was performed by the wearer. The users are classified as A, B, C, D, E. A means someone who is doing the weight lifting properly, other classes indicate a specific mistake the user is doing while doing weight lifting.</p>
+<p>This human activity recognition is applied to the Weight Lifting Exercises data set is to investigate “how (well)” an activity was performed by the wearer. The users are classified as A, B, C, D, E. Here ‘A’ means someone who is doing the weight lifting correctly, other classes indicate a specific mistake the user is doing while doing weight lifting.</p>
 </div>
 <div id="load-the-data-with-some-cleansing" class="section level1">
 <h1>Load the Data (with some Cleansing)</h1>
@@ -103,7 +103,7 @@ pmlTest = read.csv(&quot;pml-testing.csv&quot;, na.strings=c(&quot;NA&quot;,&quo
 <div id="preprocess-the-data-set" class="section level1">
 <h1>Preprocess the data set</h1>
 <p>There are 3 steps in the process</p>
-<ul>
+<ol style="list-style-type: decimal">
 <li>Remove the Near Zero variance columns (removes 29 columns)</li>
 <li>Remove the columns which has 95% of values as NA (removes 77 additional columns)</li>
 <li>Remove the columns that doesn’t make sense in the weight lifting domain. In this case, since we do want to be training the data based on the (Removes additional 5, in total 111 columns is of interest):
@@ -111,7 +111,7 @@ pmlTest = read.csv(&quot;pml-testing.csv&quot;, na.strings=c(&quot;NA&quot;,&quo
 <li>user name (as training set shouldn’t tuned to the user name to avoid issues in the User)</li>
 <li>Serial number and dates of the observation are irrelevant to this exercise.</li>
 </ul></li>
-</ul>
+</ol>
 <pre class="r"><code># Remove Near Zero Variance columns 
 dim(pmlTrain)</code></pre>
 <pre><code>## [1] 19622   160</code></pre>
@@ -136,7 +136,7 @@ dim(pmlTrain.filtered.2)</code></pre>
 <div id="splitting-the-data-set" class="section level1">
 <h1>Splitting the data set</h1>
 <p>The training data is further split into training set and validation data, so that out-of-sample accuracy can be calculated. This validation data set can be used for model comparison as well.</p>
-<pre class="r"><code>inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.2, list=FALSE)
+<pre class="r"><code>inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.7, list=FALSE)
 
 trainingPmlTrain = pmlTrain.filtered.2[inTrain,]
 validationPmlTrain = pmlTrain.filtered.2[-inTrain,]</code></pre>
@@ -151,31 +151,12 @@ gbmfitControl &lt;- trainControl(## 10-fold CV
                            number = 10,
                            ## repeated 3 times
                            repeats = 3)
-modFitboost = train(trainingPmlTrain$classe ~., method=&quot;gbm&quot;, trControl = gbmfitControl, data=trainingPmlTrain)</code></pre>
-<pre><code>## Iter   TrainDeviance   ValidDeviance   StepSize   Improve
-##      1        1.6094             nan     0.1000    0.2353
-##      2        1.4551             nan     0.1000    0.1632
-##      3        1.3501             nan     0.1000    0.1216
-##      4        1.2670             nan     0.1000    0.1072
-##      5        1.1960             nan     0.1000    0.0760
-##      6        1.1450             nan     0.1000    0.0802
-##      7        1.0910             nan     0.1000    0.0677
-##      8        1.0455             nan     0.1000    0.0586
-##      9        1.0059             nan     0.1000    0.0494
-##     10        0.9716             nan     0.1000    0.0441
-##     20        0.7040             nan     0.1000    0.0272
-##     40        0.4614             nan     0.1000    0.0083
-##     60        0.3319             nan     0.1000    0.0064
-##     80        0.2454             nan     0.1000    0.0021
-##    100        0.1853             nan     0.1000    0.0014
-##    120        0.1467             nan     0.1000    0.0019
-##    140        0.1142             nan     0.1000    0.0007
-##    150        0.1033             nan     0.1000    0.0001</code></pre>
-<pre class="r"><code>print(modFitboost$results$Accuracy[1]) </code></pre>
-<pre><code>## [1] 0.7484049</code></pre>
+modFitboost = train(trainingPmlTrain$classe ~., method=&quot;gbm&quot;, trControl = gbmfitControl, data=trainingPmlTrain, verbose = FALSE)
+print(modFitboost$results$Accuracy[1]) </code></pre>
+<pre><code>## [1] 0.7422071</code></pre>
 <pre class="r"><code>registerDoSEQ()</code></pre>
 <p>The accuracy of Gradient boosting based model is mentioned below.</p>
-<p><strong>In-Sample Accuracy:</strong> 0.7484049</p>
+<p><strong>In-Sample Accuracy:</strong> 0.7422071</p>
 </div>
 <div id="variable-importance-out-of-sample-error-in-validation-set" class="section level1">
 <h1>Variable importance &amp; Out of Sample Error (in Validation set)</h1>
@@ -206,7 +187,7 @@ pmlTest.filtered.2$predTest = predict(modFitboost, newdata = pmlTest.filtered.2)
 length(pmlTest.filtered.2$predTest)</code></pre>
 <pre><code>## [1] 20</code></pre>
 <pre class="r"><code>pmlTest.filtered.2$predTest</code></pre>
-<pre><code>##  [1] B A B A A E D D A A B C B A E E A B B B
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
 </div>
 <div id="submission-files" class="section level1">

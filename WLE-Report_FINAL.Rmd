@@ -8,7 +8,7 @@ output:
 ---
 # Abstract
 
-This human activity recognition is applied to the Weight Lifting Exercises data set is to investigate "how (well)" an activity was performed by the wearer. The users are classified as A, B, C, D, E. A means someone who is doing the weight lifting properly, other classes indicate a specific mistake the user is doing while doing weight lifting.  
+This human activity recognition is applied to the Weight Lifting Exercises data set is to investigate "how (well)" an activity was performed by the wearer. The users are classified as A, B, C, D, E. Here 'A' means someone who is doing the weight lifting correctly, other classes indicate a specific mistake the user is doing while doing weight lifting.  
 
 # Load the Data (with some Cleansing)
 
@@ -36,9 +36,9 @@ summary(pmlTrain)
 
 There are 3 steps in the process
 
-* Remove the Near Zero variance columns (removes 29 columns)
-* Remove the columns which has 95% of values as NA (removes 77 additional columns)
-* Remove the columns that doesn't make sense in the weight lifting domain. In this case, since we do want to be training the data based on the (Removes additional 5, in total 111 columns is of interest):
+1. Remove the Near Zero variance columns (removes 29 columns)
+2. Remove the columns which has 95% of values as NA (removes 77 additional columns)
+3. Remove the columns that doesn't make sense in the weight lifting domain. In this case, since we do want to be training the data based on the (Removes additional 5, in total 111 columns is of interest):
     + user name (as training set shouldn't tuned to the user name to avoid issues in the User)
     + Serial number and dates of the observation are irrelevant to this exercise. 
 
@@ -68,7 +68,7 @@ dim(pmlTest.filtered.2)
 The training data is further split into training set and validation data, so that out-of-sample accuracy can be calculated. This validation data set can be used for model comparison as well.
 
 ```{r}
-inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.2, list=FALSE)
+inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.7, list=FALSE)
 
 trainingPmlTrain = pmlTrain.filtered.2[inTrain,]
 validationPmlTrain = pmlTrain.filtered.2[-inTrain,]
@@ -87,7 +87,7 @@ gbmfitControl <- trainControl(## 10-fold CV
                            number = 10,
                            ## repeated 3 times
                            repeats = 3)
-modFitboost = train(trainingPmlTrain$classe ~., method="gbm", trControl = gbmfitControl, data=trainingPmlTrain)
+modFitboost = train(trainingPmlTrain$classe ~., method="gbm", trControl = gbmfitControl, data=trainingPmlTrain, verbose = FALSE)
 print(modFitboost$results$Accuracy[1]) 
 registerDoSEQ()
 
