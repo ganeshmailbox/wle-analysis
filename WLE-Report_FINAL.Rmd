@@ -1,0 +1,146 @@
+---
+title: "Weight Lifting Exercises Dataset - Analysis and Report"
+author: "Ganesh Sethuraman"
+date: "July 20, 2015"
+output: html_document
+
+---
+# Abstract
+
+
+
+
+This human activity recognition is applied to the Weight Lifting Exercises dataset is to investigate "how (well)" an activity was performed by the wearer. The users are classfied as A, B, C, D, E. A means someone who is doing the weight lifting properly, other classes indicate a specific mistake the user is doing while doing weight lifting.  
+
+# Load the Data (with some Cleansing)
+
+While borwsing the dataset (using str function) it is evident that, there are many numeric fields that are presented as string. When we looked deeper there were specific string which needs to considered as **`NA`**. 
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+library("caret")
+library("dplyr")
+```
+
+```{r}
+set.seed(1729) # Ramamnujam number 
+pmlTrain = read.csv("pml-training.csv", na.strings=c("NA","NaN", " ", "#DIV/0!"))
+pmlTest = read.csv("pml-testing.csv", na.strings=c("NA","NaN", " ", "#DIV/0!"))
+#str(pmlTrain,list.len = 999)
+```
+
+# Exploratory Analysis 
+```{r, results='hide'}
+summary(pmlTrain)
+
+```
+
+# Preprocess the data set 
+```{r}
+# Remove Near Zero Values 
+dim(pmlTrain)
+nzvPml = nearZeroVar(pmlTrain[sapply(pmlTrain, is.numeric)])
+pmlTrain.filtered = pmlTrain[, -nzvPml]
+pmlTest.filtered = pmlTest[, -nzvPml]
+dim(pmlTrain.filtered)
+dim(pmlTest.filtered)
+
+# remove all NA column 
+naCols = colSums(is.na(pmlTrain.filtered))<nrow(pmlTrain.filtered)*0.95
+pmlTrain.filtered.noNA <- pmlTrain.filtered[,naCols]
+pmlTest.filtered.noNA <- pmlTest.filtered[,naCols]
+dim(pmlTrain.filtered.noNA)
+dim(pmlTest.filtered.noNA)
+
+# Remove varibles that does'nt make sense in the Weight Lifting Exercises Dataset
+dropCol = c("user_name","X", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp")
+pmlTrain.filtered.2 = pmlTrain.filtered.noNA[,!(names(pmlTrain.filtered.noNA) %in% dropCol)]
+pmlTest.filtered.2 = pmlTest.filtered.noNA[,!(names(pmlTest.filtered.noNA) %in% dropCol)]
+dim(pmlTrain.filtered.2)
+dim(pmlTest.filtered.2)
+
+```
+
+#  Splitting the data set 
+```{r}
+inTrain = createDataPartition(pmlTrain.filtered.2$classe, p=0.2, list=FALSE)
+
+trainingPmlTrain = pmlTrain.filtered.2[inTrain,]
+validationPmlTrain = pmlTrain.filtered.2[-inTrain,]
+
+```
+
+# Train the data set using Boosting technique 
+```{r, cache=TRUE}
+library(doParallel)
+registerDoParallel(cores=3)
+gbmfitControl <- trainControl(## 10-fold CV
+                           method = "repeatedcv",
+                           number = 10,
+                           ## repeated 3 times
+                           repeats = 3)
+modFitboost = train(trainingPmlTrain$classe ~., method="gbm", trControl = gbmfitControl, data=trainingPmlTrain)
+print(modFitboost$results$Accuracy[1]) 
+registerDoSEQ()
+
+```
+
+
+# Models Performance (with Training & Validation set)
+
+Please 
+
+**In-Sample Accuracy:** `r modFitboost$results$Accuracy[1]` 
+
+# Variable importance predict results & Out of Sample Error
+
+Make sure the variables that are important are shown as important. Please find the confusion matrix table below. This shows that predicted value and actual values on the validation set is more or less the same.
+
+```{r, cache=TRUE}
+gbmImp <- varImp(modFitboost, scale = TRUE)
+plot(gbmImp, top = 20)
+
+#Testing the prediction with Validation set
+predValidation = predict(modFitboost, newdata = validationPmlTrain)
+length(predValidation)
+mat = confusionMatrix(predValidation, validationPmlTrain$classe)
+mat$table
+
+```
+
+**Out-of-Sample Accuracy:** `r mat$overall[1]`
+
+# Actual Testing with Test data 
+```{r, message=FALSE, warning=FALSE}
+
+#Testing the prediction with REAL Test set
+pmlTest.filtered.2$predTest = predict(modFitboost, newdata = pmlTest.filtered.2)
+length(pmlTest.filtered.2$predTest)
+
+pmlTest.filtered.2$predTest
+
+```
+
+# Submission files
+```{r}
+answers = pmlTest.filtered.2$predTest
+
+#create the submission files
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(answers)
+
+
+```
+
+# References
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#literature#ixzz3gxZzwiwE
+
+==========
