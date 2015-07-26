@@ -75,7 +75,7 @@ img {
 <li><a href="#preprocess-the-data-set">Preprocess the data set</a></li>
 <li><a href="#splitting-the-data-set">Splitting the data set</a></li>
 <li><a href="#model-creation---boosting-technique">Model Creation - Boosting technique</a></li>
-<li><a href="#variable-importance-out-of-sample-error-in-validation-set">Variable importance &amp; Out of Sample Error (in Validation set)</a></li>
+<li><a href="#variable-importance-out-of-sample-error-validation">Variable importance &amp; Out of Sample Error (Validation)</a></li>
 <li><a href="#actual-testing-with-test-data">Actual Testing with Test data</a></li>
 <li><a href="#submission-files">Submission files</a></li>
 <li><a href="#references">References</a></li>
@@ -156,10 +156,10 @@ print(modFitboost$results$Accuracy[1]) </code></pre>
 <pre><code>## [1] 0.7422071</code></pre>
 <pre class="r"><code>registerDoSEQ()</code></pre>
 <p>The accuracy of Gradient boosting based model is mentioned below.</p>
-<p><strong>In-Sample Accuracy:</strong> 0.7422071</p>
+<p><strong>In-Sample Accuracy: 0.7422071</strong></p>
 </div>
-<div id="variable-importance-out-of-sample-error-in-validation-set" class="section level1">
-<h1>Variable importance &amp; Out of Sample Error (in Validation set)</h1>
+<div id="variable-importance-out-of-sample-error-validation" class="section level1">
+<h1>Variable importance &amp; Out of Sample Error (Validation)</h1>
 <p>Make sure the variables that are important are intuitively important. Please find the confusion matrix table below. This shows that predicted value and actual values on the validation set is more or less the same (high accuracy).</p>
 <pre class="r"><code>gbmImp &lt;- varImp(modFitboost, scale = TRUE)
 plot(gbmImp, top = 20)</code></pre>
@@ -177,7 +177,7 @@ mat$table</code></pre>
 ##          C    1   73 2667   68   12
 ##          D    9    9    1 2481   35
 ##          E    3    5    1   21 2788</code></pre>
-<p><strong>Out-of-Sample Accuracy:</strong> 0.972093</p>
+<p><strong>Out-of-Sample Accuracy: 0.972093</strong>. Note that out-of-sample accuracy is better than in-sample accuracy from the model in this case. If accuracy is high, note that sample error is low.</p>
 </div>
 <div id="actual-testing-with-test-data" class="section level1">
 <h1>Actual Testing with Test data</h1>

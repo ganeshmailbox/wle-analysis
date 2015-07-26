@@ -96,9 +96,9 @@ registerDoSEQ()
 
 The accuracy of Gradient boosting based model is mentioned below.
 
-**In-Sample Accuracy:** `r modFitboost$results$Accuracy[1]` 
+**In-Sample Accuracy: `r modFitboost$results$Accuracy[1]`** 
 
-# Variable importance & Out of Sample Error (in Validation set)
+# Variable importance & Out of Sample Error (Validation)
 
 Make sure the variables that are important are intuitively important. Please find the confusion matrix table below. This shows that predicted value and actual values on the validation set is more or less the same (high accuracy).
 
@@ -114,7 +114,7 @@ mat$table
 
 ```
 
-**Out-of-Sample Accuracy:** `r mat$overall[1]`
+**Out-of-Sample Accuracy: `r mat$overall[1]`**. Note that out-of-sample accuracy is better than in-sample accuracy from the model in this case. If accuracy is high, note that sample error is low.
 
 # Actual Testing with Test data 
 
